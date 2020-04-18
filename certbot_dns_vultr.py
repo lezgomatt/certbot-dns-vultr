@@ -55,6 +55,7 @@ class Authenticator(dns_common.DNSAuthenticator):
 class VultrClient:
     def __init__(self, key):
         self.api_key = key
+        self.domains_cache = None
 
     def add_txt_record(self, domain_name, record_name, record_data):
         try:
@@ -87,10 +88,13 @@ class VultrClient:
             logger.warning(f'Failed to delete TXT record for "{domain_name}": {error_message}')
 
     def get_base_domain_name(self, full_domain_name):
-        try:
-            domains = self.request("GET", "/dns/list")
-        except requests.HTTPError as err:
-            raise VultrPluginError("Error fetching DNS domains list: " + http_error_message(err))
+        if self.domains_cache is not None:
+            domains = self.domains_cache
+        else:
+            try:
+                domains = self.domains_cache = self.request("GET", "/dns/list")
+            except requests.HTTPError as err:
+                raise VultrPluginError("Error fetching DNS domains list: " + http_error_message(err))
 
         guess_list = dns_common.base_domain_name_guesses(full_domain_name)
         for guess in guess_list:

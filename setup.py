@@ -5,7 +5,7 @@ with open("README.md", "r") as readme:
 
 setuptools.setup(
     name="certbot-dns-vultr",
-    version="0.0.1",
+    version="0.0.2",
     description="Vultr DNS Authenticator plugin for Certbot",
     url="https://github.com/undecidabot/certbot-dns-vultr",
     author="Matt",
@@ -30,7 +30,7 @@ setuptools.setup(
         "Topic :: System :: Systems Administration",
         "Topic :: Utilities",
     ],
-    package=setuptools.find_packages(),
+    py_modules=["certbot_dns_vultr"],
     python_requires=">=3.6",
     install_requires=[
         "certbot",

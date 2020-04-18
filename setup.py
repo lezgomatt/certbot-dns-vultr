@@ -1,7 +1,7 @@
 from setuptools import setup
 
-# with open("README.md", "r") as readme:
-#     long_description = readme.read()
+with open("README.md", "r") as readme:
+    long_description = readme.read()
 
 setuptools.setup(
     name="certbot-dns-vultr",
@@ -11,8 +11,8 @@ setuptools.setup(
     author="Matt",
     author_email="undecidabot@gmail.com",
     license="Zlib",
-    # long_description=long_description,
-    # long_description_content_type="text/markdown",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     classifiers=[
         "Environment :: Plugins",
         "Intended Audience :: System Administrators",

@@ -56,33 +56,39 @@ class VultrClient:
     def __init__(self, key):
         self.api_key = key
         self.domains_cache = None
+        self.added_records = set()
 
     def add_txt_record(self, domain_name, record_name, record_data):
         try:
             base_domain_name = self.get_base_domain_name(domain_name)
-            record_name = self.get_relative_record_name(base_domain_name, record_name)
+            relative_record_name = self.get_relative_record_name(base_domain_name, record_name)
 
             self.request("POST", "/dns/create_record", {
                 "domain": base_domain_name,
                 "type": "TXT",
-                "name": record_name,
+                "name": relative_record_name,
                 "data": quote(record_data),
             })
 
-            logger.debug(f'Successfully added TXT record "{domain_name}"')
+            self.added_records.add((record_name, record_data))
+            logger.debug(f'Successfully added TXT record for "{domain_name}"')
         except (VultrPluginError, requests.HTTPError) as err:
             error_message = err.message if isinstance(err, VultrPluginError) else response_error_message(err)
             raise errors.PluginError(f'Failed to add TXT record for "{domain_name}": {error_message}')
 
     def del_txt_record(self, domain_name, record_name, record_data):
+        if (record_name, record_data) not in self.added_records:
+            logger.debug(f'Skipping deletion of TXT record for "{domain_name}" since it was not successfully added')
+            return
+
         try:
             base_domain_name = self.get_base_domain_name(domain_name)
-            record_name = self.get_relative_record_name(base_domain_name, record_name)
-            record_id = self.get_record_id(base_domain_name, record_name, record_data)
+            relative_record_name = self.get_relative_record_name(base_domain_name, record_name)
+            record_id = self.get_record_id(base_domain_name, relative_record_name, record_data)
 
             self.request("POST", "/dns/delete_record", {"domain": base_domain_name, "RECORDID": record_id})
 
-            logger.debug(f'Successfully deleted TXT record "{domain_name}"')
+            logger.debug(f'Successfully deleted TXT record for "{domain_name}"')
         except (VultrPluginError, requests.HTTPError) as err:
             error_message = err.message if isinstance(err, VultrPluginError) else http_error_message(err)
             logger.warning(f'Failed to delete TXT record for "{domain_name}": {error_message}')

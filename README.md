@@ -21,9 +21,9 @@ You should see `certbot-dns-vultr:dns-vultr` in the output.
 ## Usage
 
 To use this plugin, set the authenticator to `certbot-dns-vultr:dns-vultr` via the `-a` or `--authenticator` flag.
-You may also set this using Cerbot's configuration file (default: `/etc/letsencrypt/cli.ini`).
+You may also set this using Cerbot's configuration file (defaults to `/etc/letsencrypt/cli.ini`).
 
-You need to provide a credentials file with your Vultr API key, like the following:
+You will also need to provide a credentials file with your Vultr API key, like the following:
 ```
 certbot_dns_vultr:dns_vultr_key = YOUR_VULTR_API_KEY
 ```
@@ -32,7 +32,7 @@ The path to this file can be provided interactively or via the `--certbot-dns-vu
 **CAUTION:**
 Protect your API key as you would the password to your account.
 Anyone with access to this file can make API calls on your behalf.
-Please read the notes on security below.
+Be sure to **read the security tips below**.
 
 
 ### Arguments
@@ -54,11 +54,14 @@ certbot certonly \
 ```
 
 
-### Security
+### Security Tips
 
-Certbot will emit a warning if the credentials file can be accessed by other users on your system.
-To fix this, limit the access of your credentials file to the owner. You can do this using `chmod 600`.
+**Restrict access of your credentials file to the owner.**
+You can do this using `chmod 600`.
+Certbot will emit a warning if the credentials file
+can be accessed by other users on your system.
 
-It is recommended that you use a separate key from your account's primary API key.
-To do this, make a separate user under your account, and limit its access to only allow DNS changes.
-It is also recommended to restrict the IP address of the API key to the machines that will be using it.
+**Use a separate key from your account's primary API key.**
+Make a separate user under your account,
+and limit its access to only allow DNS access
+and the IP address of the machine(s) that will be using it.

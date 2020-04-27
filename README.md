@@ -21,7 +21,7 @@ You should see `certbot-dns-vultr:dns-vultr` in the output.
 ## Usage
 
 To use this plugin, set the authenticator to `certbot-dns-vultr:dns-vultr` via the `-a` or `--authenticator` flag.
-You may also set this using Cerbot's configuration file (defaults to `/etc/letsencrypt/cli.ini`).
+You may also set this using Certbot's configuration file (defaults to `/etc/letsencrypt/cli.ini`).
 
 You will also need to provide a credentials file with your Vultr API key, like the following:
 ```

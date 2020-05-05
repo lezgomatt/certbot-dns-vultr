@@ -8,12 +8,12 @@ that can complete the DNS-01 challenge using the Vultr API.
 
 Use pip to install this package:
 ```
-sudo pip3 install certbot-dns-vultr
+$ sudo pip3 install certbot-dns-vultr
 ```
 
 Verify the installation with Certbot:
 ```
-sudo certbot plugins
+$ sudo certbot plugins
 ```
 You should see `certbot-dns-vultr:dns-vultr` in the output.
 
@@ -47,10 +47,10 @@ these arguments *cannot* be set via Certbot's configuration file.
 ### Example
 
 ```
-certbot certonly \
-  -a certbot-dns-vultr:dns-vultr \
-  --certbot-dns-vultr:dns-vultr-credentials ~/.secrets/certbot/vultr.ini \
-  -d example.com
+$ certbot certonly \
+    -a certbot-dns-vultr:dns-vultr \
+    --certbot-dns-vultr:dns-vultr-credentials ~/.secrets/certbot/vultr.ini \
+    -d example.com
 ```
 
 

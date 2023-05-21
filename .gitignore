@@ -2,3 +2,4 @@ __pycache__
 build/
 dist/
 certbot_dns_vultr.egg-info/
+.vscode/

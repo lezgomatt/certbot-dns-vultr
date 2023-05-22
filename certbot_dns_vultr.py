@@ -56,24 +56,23 @@ class VultrClient:
     def __init__(self, key):
         self.api_key = key
         self.domains_cache = None
-        self.added_records = set()
+        self.added_records = dict()
 
     def add_txt_record(self, domain_name, record_name, record_data):
         try:
             base_domain_name = self.get_base_domain_name(domain_name)
             relative_record_name = self.get_relative_record_name(base_domain_name, record_name)
 
-            self.request("POST", "/dns/create_record", {
-                "domain": base_domain_name,
+            result = self.request("POST", f"/domains/{base_domain_name}/records", {
                 "type": "TXT",
                 "name": relative_record_name,
                 "data": quote(record_data),
             })
 
-            self.added_records.add((record_name, record_data))
+            self.added_records[(record_name, record_data)] = result["record"]["id"]
             logger.debug(f'Successfully added TXT record for "{domain_name}"')
         except (VultrPluginError, requests.HTTPError) as err:
-            error_message = err.message if isinstance(err, VultrPluginError) else response_error_message(err)
+            error_message = err.message if isinstance(err, VultrPluginError) else http_error_message(err)
             raise errors.PluginError(f'Failed to add TXT record for "{domain_name}": {error_message}')
 
     def del_txt_record(self, domain_name, record_name, record_data):
@@ -83,10 +82,9 @@ class VultrClient:
 
         try:
             base_domain_name = self.get_base_domain_name(domain_name)
-            relative_record_name = self.get_relative_record_name(base_domain_name, record_name)
-            record_id = self.get_record_id(base_domain_name, relative_record_name, record_data)
+            record_id = self.added_records[(record_name, record_data)]
 
-            self.request("POST", "/dns/delete_record", {"domain": base_domain_name, "RECORDID": record_id})
+            self.request("DELETE", f"/domains/{base_domain_name}/records/{record_id}")
 
             logger.debug(f'Successfully deleted TXT record for "{domain_name}"')
         except (VultrPluginError, requests.HTTPError) as err:
@@ -98,7 +96,7 @@ class VultrClient:
             domains = self.domains_cache
         else:
             try:
-                domains = self.domains_cache = self.request("GET", "/dns/list")
+                domains = self.domains_cache = self.request("GET", "/domains")["domains"]
             except requests.HTTPError as err:
                 raise VultrPluginError("Error fetching DNS domains list: " + http_error_message(err))
 
@@ -114,22 +112,10 @@ class VultrClient:
     def get_relative_record_name(self, base_domain_name, absolute_record_name):
         return absolute_record_name[:-len("." + base_domain_name)]
 
-    def get_record_id(self, base_domain_name, relative_record_name, record_data):
-        try:
-            dns_records = self.request("GET", "/dns/records?domain=" + base_domain_name)
-        except requests.HTTPError as err:
-            raise VultrPluginError(f'Error fetching DNS records for "{base_domain_name}": {http_error_message(err)}')
-
-        for r in dns_records:
-            if r.get("type") == "TXT" and r.get("name") == relative_record_name and r.get("data") == quote(record_data):
-                return r["RECORDID"]
-
-        raise VultrPluginError("TXT record not found")
-
     def request(self, method, path, data=None):
-        url = "https://api.vultr.com/v1" + path
+        url = "https://api.vultr.com/v2" + path
 
-        response = requests.request(method, url, data=data, headers={"API-Key": self.api_key})
+        response = requests.request(method, url, json=data, headers={"Authorization": f"Bearer {self.api_key}"})
         response.raise_for_status()
 
         if response.headers["Content-Type"] == "application/json":
